@@ -1,43 +1,46 @@
-import { LightningElement, api, wire } from 'lwc';
-import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
+import { LightningElement, api, wire, track } from "lwc";
+import { getRecord, getFieldValue } from "lightning/uiRecordApi";
 
-import SHIP_NUM from '@salesforce/schema/Shipment__c.Shipment_Number__c';
-const FIELDS = [SHIP_NUM];
-const endpoint = 'https://merzcommunities--tina.sandbox.my.salesforce-sites.com/services/apexrest/mockShipmentStatus?trackingNumber=anythingwilldo';
+import SHIP_NUM_FIELD from '@salesforce/schema/Shipment__c.Shipment_Number__c';
+const FIELDS = [SHIP_NUM_FIELD];
+const endpoint = 'https://merzcommunities--tina.sandbox.my.salesforce-sites.com/services/apexrest/mockShipmentStatus';
+
 
 export default class merzShipmentStatus extends LightningElement {
 
    @api recordId;
-
-    @wire(getRecord, { recordId: '$recordId', fields: FIELDS}) 
-    shipment__c;
-
-    get shipmentNumber(){
-        return getFieldValue(this.shipment__c.data, [SHIP_NUM]);
-    } 
+   @track shipStat = 'Please click Fetch Status to fetch latest shipping status';
+   
+    @wire (getRecord, { recordId: "$recordId", fields: FIELDS}) 
+    shipment__c;     
     
-    
-    statusCheck() {   
+      handleRefresh() {   
+        
+        let shipmentNumber = getFieldValue(this.shipment__c.data, SHIP_NUM_FIELD);
       
-          console.log('Called URL: ', endpoint);         
-          fetch(endpoint)        
-              .then((response) => {
-                if(!response.ok) {
-                    throw new Error('Request failed!');
-                }
-                console.log('Response: ', response); 
-                return response.json();      
-          })
-          .then(data => {    
-            console.log('@@@ data'+JSON.stringify(data));
-            this.shipStatus = data; 
-            this.error = undefined;       
-          }) 
-          .catch(error => {
-            this.error = error;
-            this.data = undefined;
-            this.shipStatus = undefined;
-          });  
-      }         
+        console.log('@@@Endpont' + endpoint + '?trackingNumber='+ shipmentNumber);
+      
+                fetch(endpoint + '?trackingNumber='+ this.shipmentNumber, {
+                   method: 'GET',
+                   mode: 'cors'                   
+                })    
+                .then((response) => {
+                  if(!response.ok) 
+                     throw new Error('No data returned for shipments');
+                  else{
+                        return response.json(); 
+                        console.log('@@@ Response' +response.json());  
+                    }    
+                })
+                .then(data => {
+                    this.shipStat = data;
+                    console.log('@@@ ShipStat' +this.shipStat);
+                })
+            .catch(error => {
+                console.log(error);
+            }) 
+            
+            
+            
+    }    
 }
-

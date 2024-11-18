@@ -1,3 +1,6 @@
-<template>
-  <h2>Merz Shipping Status: {shipStatus}</h2> 
-  </template>
+<template>  
+        <lightning-button label="Fetch Ship Status" onclick={handleRefresh}></lightning-button>
+        <lightning-card title = "Shipment Status: ">            
+            <p class="slds-p-horizontal_small">{shipStat}</p>
+        </lightning-card> 
+</template>
